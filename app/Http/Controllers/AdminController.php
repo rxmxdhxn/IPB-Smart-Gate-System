@@ -4,18 +4,51 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Vehicle;
+use App\Models\VehicleLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Carbon\Carbon;
 
 class AdminController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $vehicles = Vehicle::with('user')->get();
+        
+        // Ambil log aktivitas terbaru dengan pagination (10 per halaman)
+        $recentLogs = VehicleLog::with('vehicle.user')
+            ->orderBy('logged_at', 'desc')
+            ->paginate(10);
+        
+        // Hitung total kendaraan masuk hari ini
+        $todayIn = VehicleLog::where('type', 'in')
+            ->whereDate('logged_at', Carbon::today())
+            ->count();
+        
+        // Hitung total kendaraan keluar hari ini
+        $todayOut = VehicleLog::where('type', 'out')
+            ->whereDate('logged_at', Carbon::today())
+            ->count();
+        
+        // Kendaraan yang sedang parkir (masuk tapi belum keluar)
+        $currentlyParked = VehicleLog::selectRaw('vehicle_id, MAX(logged_at) as last_log')
+            ->groupBy('vehicle_id')
+            ->get()
+            ->filter(function($log) {
+                $lastLog = VehicleLog::where('vehicle_id', $log->vehicle_id)
+                    ->where('logged_at', $log->last_log)
+                    ->first();
+                return $lastLog && $lastLog->type === 'in';
+            })
+            ->count();
 
         return view('admin.dashboard', [
             'totalVehicles' => $vehicles->count(),
-            'vehicles' => $vehicles
+            'vehicles' => $vehicles,
+            'recentLogs' => $recentLogs,
+            'todayIn' => $todayIn,
+            'todayOut' => $todayOut,
+            'currentlyParked' => $currentlyParked,
         ]);
     }
 

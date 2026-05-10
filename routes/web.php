@@ -4,6 +4,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\VehicleController;
+use App\Http\Controllers\VehicleLogController;
 
 
 Route::get('/', function () {
@@ -33,7 +34,17 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/vehicle', [VehicleController::class, 'store'])->name('vehicle.store');
     Route::put('/vehicle/{id}', [VehicleController::class, 'update'])->name('vehicle.update');
     Route::delete('/vehicle/{id}', [VehicleController::class, 'destroy'])->name('vehicle.destroy');
+
+    // Vehicle Log Routes
+    Route::get('/vehicle-logs', [VehicleLogController::class, 'index'])->name('vehicle-log.index');
+    Route::get('/vehicle-logs/export', [VehicleLogController::class, 'export'])->name('vehicle-log.export');
+    Route::post('/vehicle-logs', [VehicleLogController::class, 'store'])->name('vehicle-log.store');
+    Route::post('/vehicle-logs/cleanup', [VehicleLogController::class, 'cleanup'])->name('vehicle-log.cleanup');
+    Route::get('/vehicle-logs/{id}', [VehicleLogController::class, 'show'])->name('vehicle-log.show');
 });
+
+// API Routes for Camera/Sensor Integration
+Route::post('/api/vehicle-log', [VehicleLogController::class, 'apiStore'])->name('api.vehicle-log.store');
 
 
 
