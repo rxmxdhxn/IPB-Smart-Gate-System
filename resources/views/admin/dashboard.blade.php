@@ -70,9 +70,23 @@
       <div class="p-4">
         <!-- Video Upload Input -->
         <div class="mb-4">
-          <label class="block text-xs font-semibold text-slate-600 mb-2">Upload Video untuk Testing</label>
-          <input type="file" id="videoInput" accept="video/*" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-          <p class="text-xs text-slate-500 mt-1">Format: MP4, AVI, MOV. Maksimal 50MB</p>
+          <label class="block text-sm font-semibold text-slate-700 mb-2">Upload Video untuk Testing</label>
+          <input type="file" id="videoInput" accept="video/*" 
+            class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-colors">
+          <p class="text-xs text-slate-500 mt-1.5">Format: MP4, AVI, MOV. Maksimal 50MB</p>
+
+          <button
+            id="submitVideoBtn"
+            type="button"
+            class="mt-3 w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+            </svg>
+            <span id="submitBtnText">Submit ke API Predict</span>
+          </button>
+
+          <div id="predictionResult" class="hidden mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm"></div>
         </div>
 
         <!-- Camera Feed Container -->
@@ -228,6 +242,143 @@
 <script>
 let currentVideo = null;
 
+const submitVideoBtn = document.getElementById('submitVideoBtn');
+const predictionResult = document.getElementById('predictionResult');
+
+submitVideoBtn.addEventListener('click', async function () {
+  const videoInput = document.getElementById('videoInput');
+  const file = videoInput.files[0];
+
+  if (!file) {
+    alert('Pilih video terlebih dahulu!');
+    return;
+  }
+
+  if (!file.type.startsWith('video/')) {
+    alert('File harus berupa video!');
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('file', file); // harus "file" karena FastAPI pakai parameter file
+
+  submitVideoBtn.disabled = true;
+  const submitBtnText = document.getElementById('submitBtnText');
+  const originalText = submitBtnText.textContent;
+  
+  submitBtnText.textContent = 'Memproses video...';
+  submitVideoBtn.innerHTML = `
+    <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+    </svg>
+    <span>Memproses...</span>
+  `;
+
+  predictionResult.classList.remove('hidden');
+  predictionResult.innerHTML = `
+    <p class="text-slate-600">Sedang memproses video, mohon tunggu...</p>
+  `;
+
+  try {
+    const response = await fetch('http://127.0.0.1:8001/predict', {
+      method: 'POST',
+      body: formData
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.message || 'Gagal memproses video');
+    }
+
+    if (result.success) {
+      predictionResult.classList.remove('bg-slate-50', 'border-slate-200');
+      predictionResult.classList.add('bg-green-50', 'border-green-200');
+      predictionResult.innerHTML = `
+        <div class="space-y-2">
+          <div class="flex items-center gap-2 mb-2">
+            <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+            <p class="font-semibold text-green-700">Plat Berhasil Terdeteksi!</p>
+          </div>
+          <div class="bg-white rounded-lg p-3 border border-green-200">
+            <p class="text-xs text-slate-500 mb-1">Plat Nomor:</p>
+            <p class="text-xl font-bold text-slate-900">${result.final_plate}</p>
+          </div>
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div class="bg-white rounded p-2 border border-green-200">
+              <p class="text-slate-500">Frame Dianalisis</p>
+              <p class="font-semibold text-slate-900">${result.voting_stats.total_frames_analyzed}</p>
+            </div>
+            <div class="bg-white rounded p-2 border border-green-200">
+              <p class="text-slate-500">Votes Winner</p>
+              <p class="font-semibold text-slate-900">${result.voting_stats.votes_for_winner}</p>
+            </div>
+            <div class="bg-white rounded p-2 border border-green-200 col-span-2">
+              <p class="text-slate-500 mb-1">Confidence Ratio</p>
+              <div class="flex items-center gap-2">
+                <div class="flex-1 bg-slate-200 rounded-full h-2">
+                  <div class="bg-green-600 h-2 rounded-full" style="width: ${(result.voting_stats.confidence_ratio * 100).toFixed(0)}%"></div>
+                </div>
+                <span class="font-semibold text-slate-900">${(result.voting_stats.confidence_ratio * 100).toFixed(1)}%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('cameraStatus').textContent = 'Prediction Done';
+      document.getElementById('cameraStatus').classList.add('text-green-600');
+      
+      showNotification('Prediksi berhasil! Plat: ' + result.final_plate, 'success');
+    } else {
+      predictionResult.classList.remove('bg-slate-50', 'border-slate-200');
+      predictionResult.classList.add('bg-yellow-50', 'border-yellow-200');
+      predictionResult.innerHTML = `
+        <div class="flex items-center gap-2">
+          <svg class="w-5 h-5 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+          </svg>
+          <div>
+            <p class="font-semibold text-yellow-700">Plat Tidak Terdeteksi</p>
+            <p class="text-sm text-yellow-600">${result.message}</p>
+          </div>
+        </div>
+      `;
+      
+      showNotification('Tidak ada plat terdeteksi dalam video', 'warning');
+    }
+
+  } catch (error) {
+    console.error('Error:', error);
+    predictionResult.classList.remove('bg-slate-50', 'border-slate-200');
+    predictionResult.classList.add('bg-red-50', 'border-red-200');
+    predictionResult.innerHTML = `
+      <div class="flex items-center gap-2">
+        <svg class="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+        </svg>
+        <div>
+          <p class="font-semibold text-red-700">Error</p>
+          <p class="text-sm text-red-600">${error.message}</p>
+          <p class="text-xs text-red-500 mt-1">Pastikan API Python berjalan di http://127.0.0.1:8001</p>
+        </div>
+      </div>
+    `;
+    showNotification('Gagal menghubungi API: ' + error.message, 'error');
+  } finally {
+    submitVideoBtn.disabled = false;
+    submitVideoBtn.innerHTML = `
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+      </svg>
+      <span>${originalText}</span>
+    `;
+  }
+});
+
 // Handle video file upload
 document.getElementById('videoInput').addEventListener('change', function(e) {
   const file = e.target.files[0];
@@ -381,22 +532,42 @@ document.getElementById('clearVideoBtn').addEventListener('click', function() {
 });
 
 // Show notification
-function showNotification(message) {
+function showNotification(message, type = 'success') {
+  let bgColor, icon;
+  
+  switch(type) {
+    case 'success':
+      bgColor = 'bg-green-500';
+      icon = '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>';
+      break;
+    case 'error':
+      bgColor = 'bg-red-500';
+      icon = '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>';
+      break;
+    case 'warning':
+      bgColor = 'bg-yellow-500';
+      icon = '<path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>';
+      break;
+    default:
+      bgColor = 'bg-blue-500';
+      icon = '<path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>';
+  }
+  
   const notification = document.createElement('div');
-  notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-3 rounded-lg shadow-lg z-50 animate-fade-in';
+  notification.className = `fixed top-4 right-4 ${bgColor} text-white px-4 py-3 rounded-lg shadow-lg z-50 animate-fade-in max-w-md`;
   notification.innerHTML = `
     <div class="flex items-center gap-2">
-      <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+      <svg class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+        ${icon}
       </svg>
-      <span>${message}</span>
+      <span class="text-sm">${message}</span>
     </div>
   `;
   document.body.appendChild(notification);
   
   setTimeout(() => {
     notification.remove();
-  }, 3000);
+  }, 4000);
 }
 
 // Webcam option (uncomment to enable)
@@ -445,6 +616,16 @@ setInterval(function() {
 
 .animate-fade-in {
   animation: fade-in 0.3s ease-out;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
 }
 </style>
 
