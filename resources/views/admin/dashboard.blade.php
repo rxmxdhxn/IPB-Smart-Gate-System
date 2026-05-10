@@ -68,6 +68,13 @@
       </div>
       
       <div class="p-4">
+        <!-- Video Upload Input -->
+        <div class="mb-4">
+          <label class="block text-xs font-semibold text-slate-600 mb-2">Upload Video untuk Testing</label>
+          <input type="file" id="videoInput" accept="video/*" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          <p class="text-xs text-slate-500 mt-1">Format: MP4, AVI, MOV. Maksimal 50MB</p>
+        </div>
+
         <!-- Camera Feed Container -->
         <div class="relative bg-slate-900 rounded-lg overflow-hidden aspect-video">
           <!-- Placeholder untuk kamera - bisa diganti dengan video stream -->
@@ -76,26 +83,31 @@
               <svg class="w-16 h-16 text-slate-600 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
               </svg>
-              <p class="text-sm text-slate-500">Kamera Belum Terhubung</p>
-              <p class="text-xs text-slate-600 mt-1">Hubungkan kamera untuk melihat live feed</p>
+              <p class="text-sm text-slate-500">Upload video untuk testing</p>
+              <p class="text-xs text-slate-600 mt-1">atau hubungkan kamera untuk live feed</p>
             </div>
           </div>
           
           <!-- Camera Controls -->
           <div class="absolute bottom-3 left-3 right-3 flex items-center justify-between">
-            <button class="bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors">
+            <button id="playPauseBtn" class="hidden bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors">
+              <svg class="w-4 h-4 inline-block mr-1" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/>
+              </svg>
+              <span id="playPauseText">Play</span>
+            </button>
+            <button id="snapshotBtn" class="bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors">
               <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
               </svg>
               Snapshot
             </button>
-            <button class="bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors">
+            <button id="clearVideoBtn" class="hidden bg-red-500/80 backdrop-blur-sm hover:bg-red-600/80 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors">
               <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
               </svg>
-              Settings
+              Clear
             </button>
           </div>
         </div>
@@ -104,11 +116,11 @@
         <div class="mt-4 grid grid-cols-2 gap-3">
           <div class="bg-slate-50 rounded-lg p-3">
             <p class="text-xs text-slate-500 mb-1">Status</p>
-            <p class="text-sm font-semibold text-slate-700">Standby</p>
+            <p id="cameraStatus" class="text-sm font-semibold text-slate-700">Standby</p>
           </div>
           <div class="bg-slate-50 rounded-lg p-3">
-            <p class="text-xs text-slate-500 mb-1">Resolusi</p>
-            <p class="text-sm font-semibold text-slate-700">1920x1080</p>
+            <p class="text-xs text-slate-500 mb-1">Source</p>
+            <p id="cameraSource" class="text-sm font-semibold text-slate-700">-</p>
           </div>
         </div>
       </div>
@@ -211,39 +223,229 @@
   </div>
 
 </div>
-<!-- 
-Script untuk integrasi kamera (opsional) -->
+
+<!-- Script untuk video upload dan playback -->
 <script>
-// Contoh integrasi dengan kamera IP atau webcam
-// Uncomment dan sesuaikan dengan setup kamera Anda
+let currentVideo = null;
 
-// navigator.mediaDevices.getUserMedia({ video: true })
-//   .then(function(stream) {
-//     const video = document.createElement('video');
-//     video.srcObject = stream;
-//     video.autoplay = true;
-//     video.className = 'w-full h-full object-cover';
-//     document.getElementById('cameraFeed').innerHTML = '';
-//     document.getElementById('cameraFeed').appendChild(video);
-//   })
-//   .catch(function(err) {
-//     console.error('Error accessing camera:', err);
-//   });
+// Handle video file upload
+document.getElementById('videoInput').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  
+  if (file) {
+    // Validate file size (50MB max)
+    if (file.size > 50 * 1024 * 1024) {
+      alert('File terlalu besar! Maksimal 50MB');
+      e.target.value = '';
+      return;
+    }
+    
+    // Validate file type
+    if (!file.type.startsWith('video/')) {
+      alert('File harus berformat video!');
+      e.target.value = '';
+      return;
+    }
+    
+    // Create video element
+    const videoUrl = URL.createObjectURL(file);
+    loadVideo(videoUrl, file.name);
+    
+    // Update status
+    document.getElementById('cameraStatus').textContent = 'Video Loaded';
+    document.getElementById('cameraStatus').classList.add('text-green-600');
+    document.getElementById('cameraSource').textContent = file.name;
+  }
+});
 
+// Load video into player
+function loadVideo(url, filename) {
+  const cameraFeed = document.getElementById('cameraFeed');
+  
+  // Clear existing content
+  cameraFeed.innerHTML = '';
+  
+  // Create video element
+  const video = document.createElement('video');
+  video.src = url;
+  video.className = 'w-full h-full object-contain';
+  video.controls = false;
+  video.loop = true;
+  
+  cameraFeed.appendChild(video);
+  currentVideo = video;
+  
+  // Show controls
+  document.getElementById('playPauseBtn').classList.remove('hidden');
+  document.getElementById('clearVideoBtn').classList.remove('hidden');
+  
+  // Auto play
+  video.play();
+  updatePlayPauseButton();
+}
+
+// Play/Pause button
+document.getElementById('playPauseBtn').addEventListener('click', function() {
+  if (currentVideo) {
+    if (currentVideo.paused) {
+      currentVideo.play();
+    } else {
+      currentVideo.pause();
+    }
+    updatePlayPauseButton();
+  }
+});
+
+// Update play/pause button text and icon
+function updatePlayPauseButton() {
+  if (currentVideo) {
+    const btn = document.getElementById('playPauseBtn');
+    const text = document.getElementById('playPauseText');
+    
+    if (currentVideo.paused) {
+      text.textContent = 'Play';
+      btn.querySelector('svg').innerHTML = '<path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/>';
+    } else {
+      text.textContent = 'Pause';
+      btn.querySelector('svg').innerHTML = '<path d="M5.75 3a.75.75 0 00-.75.75v12.5c0 .414.336.75.75.75h1.5a.75.75 0 00.75-.75V3.75A.75.75 0 007.25 3h-1.5zM12.75 3a.75.75 0 00-.75.75v12.5c0 .414.336.75.75.75h1.5a.75.75 0 00.75-.75V3.75a.75.75 0 00-.75-.75h-1.5z"/>';
+    }
+  }
+}
+
+// Listen to video play/pause events
+document.addEventListener('DOMContentLoaded', function() {
+  const observer = new MutationObserver(function() {
+    if (currentVideo) {
+      currentVideo.addEventListener('play', updatePlayPauseButton);
+      currentVideo.addEventListener('pause', updatePlayPauseButton);
+    }
+  });
+});
+
+// Snapshot button
+document.getElementById('snapshotBtn').addEventListener('click', function() {
+  if (currentVideo && !currentVideo.paused) {
+    // Create canvas to capture frame
+    const canvas = document.createElement('canvas');
+    canvas.width = currentVideo.videoWidth;
+    canvas.height = currentVideo.videoHeight;
+    
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(currentVideo, 0, 0, canvas.width, canvas.height);
+    
+    // Convert to blob and download
+    canvas.toBlob(function(blob) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'snapshot-' + Date.now() + '.jpg';
+      a.click();
+      URL.revokeObjectURL(url);
+      
+      // Show notification
+      showNotification('Snapshot berhasil disimpan!');
+    }, 'image/jpeg', 0.95);
+  } else {
+    alert('Video harus diputar untuk mengambil snapshot!');
+  }
+});
+
+// Clear video button
+document.getElementById('clearVideoBtn').addEventListener('click', function() {
+  if (confirm('Hapus video yang sedang dimuat?')) {
+    // Clear video
+    const cameraFeed = document.getElementById('cameraFeed');
+    cameraFeed.innerHTML = `
+      <div class="text-center">
+        <svg class="w-16 h-16 text-slate-600 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+        </svg>
+        <p class="text-sm text-slate-500">Upload video untuk testing</p>
+        <p class="text-xs text-slate-600 mt-1">atau hubungkan kamera untuk live feed</p>
+      </div>
+    `;
+    
+    // Reset input
+    document.getElementById('videoInput').value = '';
+    currentVideo = null;
+    
+    // Hide controls
+    document.getElementById('playPauseBtn').classList.add('hidden');
+    document.getElementById('clearVideoBtn').classList.add('hidden');
+    
+    // Reset status
+    document.getElementById('cameraStatus').textContent = 'Standby';
+    document.getElementById('cameraStatus').classList.remove('text-green-600');
+    document.getElementById('cameraSource').textContent = '-';
+  }
+});
+
+// Show notification
+function showNotification(message) {
+  const notification = document.createElement('div');
+  notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-3 rounded-lg shadow-lg z-50 animate-fade-in';
+  notification.innerHTML = `
+    <div class="flex items-center gap-2">
+      <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+      </svg>
+      <span>${message}</span>
+    </div>
+  `;
+  document.body.appendChild(notification);
+  
+  setTimeout(() => {
+    notification.remove();
+  }, 3000);
+}
+
+// Webcam option (uncomment to enable)
 /*
-// Atau menggunakan IP Camera stream (MJPEG/RTSP)
-const cameraUrl = 'http://your-camera-ip:port/video';
-const img = document.createElement('img');
-img.src = cameraUrl;
-img.className = 'w-full h-full object-cover';
-document.getElementById('cameraFeed').innerHTML = '';
-document.getElementById('cameraFeed').appendChild(img);
+function startWebcam() {
+  navigator.mediaDevices.getUserMedia({ video: true })
+    .then(function(stream) {
+      const video = document.createElement('video');
+      video.srcObject = stream;
+      video.autoplay = true;
+      video.className = 'w-full h-full object-cover';
+      document.getElementById('cameraFeed').innerHTML = '';
+      document.getElementById('cameraFeed').appendChild(video);
+      currentVideo = video;
+      
+      document.getElementById('cameraStatus').textContent = 'Live';
+      document.getElementById('cameraStatus').classList.add('text-green-600');
+      document.getElementById('cameraSource').textContent = 'Webcam';
+    })
+    .catch(function(err) {
+      console.error('Error accessing camera:', err);
+      alert('Tidak dapat mengakses webcam!');
+    });
+}
 */
 
-// Auto refresh log setiap 30 detik
+// Auto refresh log setiap 30 detik (disabled when video is playing)
 setInterval(function() {
-  location.reload();
+  if (!currentVideo || currentVideo.paused) {
+    location.reload();
+  }
 }, 30000);
 </script>
+
+<style>
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+</style>
 
 @endsection
