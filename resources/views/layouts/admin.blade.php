@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
   @vite(['resources/css/app.css', 'resources/js/app.js'])
   <title>@yield('title', 'Admin Panel')</title>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -61,6 +62,16 @@
         <circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
       </svg>
       Vehicles
+    </a>
+
+    <a href="{{ route('vehicle-log.index') }}" class="flex items-center gap-[11px] px-3 py-2.5 rounded-[9px] mb-0.5 text-[13.5px] font-medium transition-all duration-[180ms] no-underline relative {{ request()->routeIs('vehicle-log.*') ? 'bg-[#4a7fe5]/20 text-white' : 'text-white/55 hover:bg-white/[0.07] hover:text-white/90' }}">
+      @if(request()->routeIs('vehicle-log.*'))
+        <span class="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-[#4a7fe5] rounded-r-[3px]"></span>
+      @endif
+      <svg class="w-4 h-4 flex-shrink-0 opacity-90" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+      </svg>
+      Vehicle Logs
     </a>
 
     <div class="text-[10px] font-semibold text-white/30 tracking-[1.2px] uppercase px-2.5 mb-2 mt-5">System</div>
