@@ -73,7 +73,7 @@ class VehicleLogController extends Controller
             'plate_number' => $request->plate_number,
             'driver_name' => $request->driver_name,
             'notes' => $request->notes,
-            'logged_at' => now(),
+            'logged_at' => Carbon::now(config('app.timezone')),
         ];
 
         // Handle camera snapshot upload
@@ -86,6 +86,96 @@ class VehicleLogController extends Controller
 
         return redirect()->route('vehicle-log.index')
             ->with('success', 'Log kendaraan berhasil ditambahkan');
+    }
+
+    /**
+     * Store a log entry from dashboard OCR detection
+     */
+    public function storeDetection(Request $request)
+    {
+        $validated = $request->validate([
+            'plate_number' => 'required|string|max:20',
+            'type' => 'nullable|in:in,out',
+            'driver_name' => 'nullable|string|max:255',
+            'camera_snapshot' => 'nullable|string',
+            'notes' => 'nullable|string',
+        ]);
+
+        $detectedPlate = strtoupper(trim(preg_replace('/\s+/', ' ', $validated['plate_number'])));
+        $normalizedDetectedPlate = preg_replace('/[^A-Z0-9]/', '', $detectedPlate);
+
+        $vehicle = Vehicle::with('user')->get()->first(function ($vehicle) use ($normalizedDetectedPlate) {
+            $normalizedVehiclePlate = preg_replace('/[^A-Z0-9]/', '', strtoupper($vehicle->plate_number));
+
+            return $normalizedVehiclePlate === $normalizedDetectedPlate;
+        });
+
+        if (!$vehicle) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Kendaraan dengan plat nomor tersebut tidak terdaftar',
+                'plate_number' => $detectedPlate,
+            ], 404);
+        }
+
+        $lastLog = VehicleLog::where('vehicle_id', $vehicle->id)
+            ->orderByDesc('logged_at')
+            ->orderByDesc('id')
+            ->first();
+
+        $detectedType = $lastLog?->type === 'in' ? 'out' : 'in';
+
+        $log = VehicleLog::create([
+            'vehicle_id' => $vehicle->id,
+            'type' => $detectedType,
+            'plate_number' => $vehicle->plate_number,
+            'driver_name' => $validated['driver_name'] ?? $vehicle->user?->name,
+            'camera_snapshot' => $validated['camera_snapshot'] ?? null,
+            'notes' => $validated['notes'] ?? 'Terdeteksi otomatis dari dashboard',
+            'logged_at' => Carbon::now(config('app.timezone')),
+        ]);
+
+        $log->load('vehicle.user');
+        $loggedAt = $log->logged_at->timezone(config('app.timezone'));
+
+        return response()->json([
+            'success' => true,
+            'message' => $detectedType === 'in'
+                ? 'Log masuk kendaraan berhasil disimpan'
+                : 'Log keluar kendaraan berhasil disimpan',
+            'data' => $log,
+            'log' => [
+                'id' => $log->id,
+                'type' => $log->type,
+                'type_label' => $log->type === 'in' ? 'Masuk' : 'Keluar',
+                'plate_number' => $log->plate_number,
+                'driver_name' => $log->driver_name ?? $log->vehicle?->user?->name ?? '-',
+                'vehicle_type' => $log->vehicle?->vehicle_type ?? '-',
+                'vehicle_name' => trim(($log->vehicle?->brand ?? '') . ' ' . ($log->vehicle?->type ?? '')),
+                'logged_time' => $loggedAt->format('H:i'),
+                'logged_date' => $loggedAt->format('d M Y'),
+            ],
+            'stats' => [
+                'today_in' => VehicleLog::where('type', 'in')
+                    ->whereDate('logged_at', Carbon::today(config('app.timezone')))
+                    ->count(),
+                'today_out' => VehicleLog::where('type', 'out')
+                    ->whereDate('logged_at', Carbon::today(config('app.timezone')))
+                    ->count(),
+                'currently_parked' => VehicleLog::selectRaw('vehicle_id, MAX(logged_at) as last_log')
+                    ->groupBy('vehicle_id')
+                    ->get()
+                    ->filter(function ($vehicleLog) {
+                        $lastVehicleLog = VehicleLog::where('vehicle_id', $vehicleLog->vehicle_id)
+                            ->where('logged_at', $vehicleLog->last_log)
+                            ->orderByDesc('id')
+                            ->first();
+
+                        return $lastVehicleLog && $lastVehicleLog->type === 'in';
+                    })
+                    ->count(),
+            ],
+        ], 201);
     }
 
     /**
@@ -124,7 +214,7 @@ class VehicleLogController extends Controller
             'type' => $request->type,
             'plate_number' => $request->plate_number,
             'driver_name' => $request->driver_name ?? $vehicle->user->name,
-            'logged_at' => now(),
+            'logged_at' => Carbon::now(config('app.timezone')),
         ];
 
         // Handle base64 image if provided

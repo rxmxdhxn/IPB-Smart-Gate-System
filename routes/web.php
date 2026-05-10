@@ -40,6 +40,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/vehicle-logs/export', [VehicleLogController::class, 'export'])->name('vehicle-log.export');
     Route::post('/vehicle-logs', [VehicleLogController::class, 'store'])->name('vehicle-log.store');
     Route::post('/vehicle-logs/cleanup', [VehicleLogController::class, 'cleanup'])->name('vehicle-log.cleanup');
+    Route::post('/vehicle-logs/store-detection', [VehicleLogController::class, 'storeDetection'])->name('vehicle-log.store-detection');
     Route::get('/vehicle-logs/{id}', [VehicleLogController::class, 'show'])->name('vehicle-log.show');
 });
 

@@ -17,7 +17,7 @@
       </div>
       <span class="text-xs font-medium text-green-600 bg-green-50 px-2.5 py-1 rounded-full">Hari Ini</span>
     </div>
-    <h3 class="text-2xl font-bold text-slate-800 mb-1">{{ $todayIn }}</h3>
+    <h3 id="todayInCount" class="text-2xl font-bold text-slate-800 mb-1">{{ $todayIn }}</h3>
     <p class="text-sm text-slate-500">Kendaraan Masuk</p>
   </div>
 
@@ -31,7 +31,7 @@
       </div>
       <span class="text-xs font-medium text-red-600 bg-red-50 px-2.5 py-1 rounded-full">Hari Ini</span>
     </div>
-    <h3 class="text-2xl font-bold text-slate-800 mb-1">{{ $todayOut }}</h3>
+    <h3 id="todayOutCount" class="text-2xl font-bold text-slate-800 mb-1">{{ $todayOut }}</h3>
     <p class="text-sm text-slate-500">Kendaraan Keluar</p>
   </div>
 
@@ -68,25 +68,26 @@
       </div>
       
       <div class="p-4">
-        <!-- Video Upload Input -->
         <div class="mb-4">
-          <label class="block text-sm font-semibold text-slate-700 mb-2">Upload Video untuk Testing</label>
-          <input type="file" id="videoInput" accept="video/*" 
-            class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-colors">
-          <p class="text-xs text-slate-500 mt-1.5">Format: MP4, AVI, MOV. Maksimal 50MB</p>
+          <div class="grid grid-cols-2 gap-2">
+            <button
+              id="startLiveOcrBtn"
+              type="button"
+              class="bg-green-600 hover:bg-green-700 text-white px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors"
+            >
+              Start Live OCR
+            </button>
 
-          <button
-            id="submitVideoBtn"
-            type="button"
-            class="mt-3 w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-            </svg>
-            <span id="submitBtnText">Submit ke API Predict</span>
-          </button>
+            <button
+              id="stopLiveOcrBtn"
+              type="button"
+              class="hidden bg-red-600 hover:bg-red-700 text-white px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors"
+            >
+              Stop Live OCR
+            </button>
+          </div>
 
-          <div id="predictionResult" class="hidden mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm"></div>
+          <div id="liveOcrResult" class="hidden mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm"></div>
         </div>
 
         <!-- Camera Feed Container -->
@@ -97,31 +98,19 @@
               <svg class="w-16 h-16 text-slate-600 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
               </svg>
-              <p class="text-sm text-slate-500">Upload video untuk testing</p>
-              <p class="text-xs text-slate-600 mt-1">atau hubungkan kamera untuk live feed</p>
+              <p class="text-sm text-slate-500">Hubungkan kamera untuk live feed</p>
+              <p class="text-xs text-slate-600 mt-1">Tekan Start Live OCR untuk mulai membaca plat</p>
             </div>
           </div>
           
           <!-- Camera Controls -->
-          <div class="absolute bottom-3 left-3 right-3 flex items-center justify-between">
-            <button id="playPauseBtn" class="hidden bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors">
-              <svg class="w-4 h-4 inline-block mr-1" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/>
-              </svg>
-              <span id="playPauseText">Play</span>
-            </button>
+          <div class="absolute bottom-3 right-3 flex items-center justify-end">
             <button id="snapshotBtn" class="bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors">
               <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
               </svg>
               Snapshot
-            </button>
-            <button id="clearVideoBtn" class="hidden bg-red-500/80 backdrop-blur-sm hover:bg-red-600/80 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors">
-              <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-              </svg>
-              Clear
             </button>
           </div>
         </div>
@@ -171,9 +160,9 @@
               <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Status</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-slate-200">
+          <tbody id="recentLogsBody" class="divide-y divide-slate-200">
             @forelse($recentLogs as $log)
-            <tr class="hover:bg-slate-50 transition-colors">
+            <tr data-log-row="true" class="hover:bg-slate-50 transition-colors">
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="text-sm text-slate-900">{{ $log->logged_at->format('H:i') }}</div>
                 <div class="text-xs text-slate-500">{{ $log->logged_at->format('d M Y') }}</div>
@@ -213,7 +202,7 @@
               </td>
             </tr>
             @empty
-            <tr>
+            <tr id="recentLogsEmpty">
               <td colspan="5" class="px-6 py-12 text-center">
                 <svg class="w-12 h-12 text-slate-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
@@ -238,251 +227,25 @@
 
 </div>
 
-<!-- Script untuk video upload dan playback -->
+<!-- Script untuk live OCR -->
 <script>
-let currentVideo = null;
-
-const submitVideoBtn = document.getElementById('submitVideoBtn');
-const predictionResult = document.getElementById('predictionResult');
-
-submitVideoBtn.addEventListener('click', async function () {
-  const videoInput = document.getElementById('videoInput');
-  const file = videoInput.files[0];
-
-  if (!file) {
-    alert('Pilih video terlebih dahulu!');
-    return;
-  }
-
-  if (!file.type.startsWith('video/')) {
-    alert('File harus berupa video!');
-    return;
-  }
-
-  const formData = new FormData();
-  formData.append('file', file); // harus "file" karena FastAPI pakai parameter file
-
-  submitVideoBtn.disabled = true;
-  const submitBtnText = document.getElementById('submitBtnText');
-  const originalText = submitBtnText.textContent;
-  
-  submitBtnText.textContent = 'Memproses video...';
-  submitVideoBtn.innerHTML = `
-    <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-    </svg>
-    <span>Memproses...</span>
-  `;
-
-  predictionResult.classList.remove('hidden');
-  predictionResult.innerHTML = `
-    <p class="text-slate-600">Sedang memproses video, mohon tunggu...</p>
-  `;
-
-  try {
-    const response = await fetch('http://127.0.0.1:8001/predict', {
-      method: 'POST',
-      body: formData
-    });
-
-    const result = await response.json();
-
-    if (!response.ok) {
-      throw new Error(result.message || 'Gagal memproses video');
-    }
-
-    if (result.success) {
-      predictionResult.classList.remove('bg-slate-50', 'border-slate-200');
-      predictionResult.classList.add('bg-green-50', 'border-green-200');
-      predictionResult.innerHTML = `
-        <div class="space-y-2">
-          <div class="flex items-center gap-2 mb-2">
-            <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-            </svg>
-            <p class="font-semibold text-green-700">Plat Berhasil Terdeteksi!</p>
-          </div>
-          <div class="bg-white rounded-lg p-3 border border-green-200">
-            <p class="text-xs text-slate-500 mb-1">Plat Nomor:</p>
-            <p class="text-xl font-bold text-slate-900">${result.final_plate}</p>
-          </div>
-          <div class="grid grid-cols-2 gap-2 text-xs">
-            <div class="bg-white rounded p-2 border border-green-200">
-              <p class="text-slate-500">Frame Dianalisis</p>
-              <p class="font-semibold text-slate-900">${result.voting_stats.total_frames_analyzed}</p>
-            </div>
-            <div class="bg-white rounded p-2 border border-green-200">
-              <p class="text-slate-500">Votes Winner</p>
-              <p class="font-semibold text-slate-900">${result.voting_stats.votes_for_winner}</p>
-            </div>
-            <div class="bg-white rounded p-2 border border-green-200 col-span-2">
-              <p class="text-slate-500 mb-1">Confidence Ratio</p>
-              <div class="flex items-center gap-2">
-                <div class="flex-1 bg-slate-200 rounded-full h-2">
-                  <div class="bg-green-600 h-2 rounded-full" style="width: ${(result.voting_stats.confidence_ratio * 100).toFixed(0)}%"></div>
-                </div>
-                <span class="font-semibold text-slate-900">${(result.voting_stats.confidence_ratio * 100).toFixed(1)}%</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      `;
-
-      document.getElementById('cameraStatus').textContent = 'Prediction Done';
-      document.getElementById('cameraStatus').classList.add('text-green-600');
-      
-      showNotification('Prediksi berhasil! Plat: ' + result.final_plate, 'success');
-    } else {
-      predictionResult.classList.remove('bg-slate-50', 'border-slate-200');
-      predictionResult.classList.add('bg-yellow-50', 'border-yellow-200');
-      predictionResult.innerHTML = `
-        <div class="flex items-center gap-2">
-          <svg class="w-5 h-5 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-          </svg>
-          <div>
-            <p class="font-semibold text-yellow-700">Plat Tidak Terdeteksi</p>
-            <p class="text-sm text-yellow-600">${result.message}</p>
-          </div>
-        </div>
-      `;
-      
-      showNotification('Tidak ada plat terdeteksi dalam video', 'warning');
-    }
-
-  } catch (error) {
-    console.error('Error:', error);
-    predictionResult.classList.remove('bg-slate-50', 'border-slate-200');
-    predictionResult.classList.add('bg-red-50', 'border-red-200');
-    predictionResult.innerHTML = `
-      <div class="flex items-center gap-2">
-        <svg class="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
-          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-        </svg>
-        <div>
-          <p class="font-semibold text-red-700">Error</p>
-          <p class="text-sm text-red-600">${error.message}</p>
-          <p class="text-xs text-red-500 mt-1">Pastikan API Python berjalan di http://127.0.0.1:8001</p>
-        </div>
-      </div>
-    `;
-    showNotification('Gagal menghubungi API: ' + error.message, 'error');
-  } finally {
-    submitVideoBtn.disabled = false;
-    submitVideoBtn.innerHTML = `
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-      </svg>
-      <span>${originalText}</span>
-    `;
-  }
-});
-
-// Handle video file upload
-document.getElementById('videoInput').addEventListener('change', function(e) {
-  const file = e.target.files[0];
-  
-  if (file) {
-    // Validate file size (50MB max)
-    if (file.size > 50 * 1024 * 1024) {
-      alert('File terlalu besar! Maksimal 50MB');
-      e.target.value = '';
-      return;
-    }
-    
-    // Validate file type
-    if (!file.type.startsWith('video/')) {
-      alert('File harus berformat video!');
-      e.target.value = '';
-      return;
-    }
-    
-    // Create video element
-    const videoUrl = URL.createObjectURL(file);
-    loadVideo(videoUrl, file.name);
-    
-    // Update status
-    document.getElementById('cameraStatus').textContent = 'Video Loaded';
-    document.getElementById('cameraStatus').classList.add('text-green-600');
-    document.getElementById('cameraSource').textContent = file.name;
-  }
-});
-
-// Load video into player
-function loadVideo(url, filename) {
-  const cameraFeed = document.getElementById('cameraFeed');
-  
-  // Clear existing content
-  cameraFeed.innerHTML = '';
-  
-  // Create video element
-  const video = document.createElement('video');
-  video.src = url;
-  video.className = 'w-full h-full object-contain';
-  video.controls = false;
-  video.loop = true;
-  
-  cameraFeed.appendChild(video);
-  currentVideo = video;
-  
-  // Show controls
-  document.getElementById('playPauseBtn').classList.remove('hidden');
-  document.getElementById('clearVideoBtn').classList.remove('hidden');
-  
-  // Auto play
-  video.play();
-  updatePlayPauseButton();
-}
-
-// Play/Pause button
-document.getElementById('playPauseBtn').addEventListener('click', function() {
-  if (currentVideo) {
-    if (currentVideo.paused) {
-      currentVideo.play();
-    } else {
-      currentVideo.pause();
-    }
-    updatePlayPauseButton();
-  }
-});
-
-// Update play/pause button text and icon
-function updatePlayPauseButton() {
-  if (currentVideo) {
-    const btn = document.getElementById('playPauseBtn');
-    const text = document.getElementById('playPauseText');
-    
-    if (currentVideo.paused) {
-      text.textContent = 'Play';
-      btn.querySelector('svg').innerHTML = '<path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/>';
-    } else {
-      text.textContent = 'Pause';
-      btn.querySelector('svg').innerHTML = '<path d="M5.75 3a.75.75 0 00-.75.75v12.5c0 .414.336.75.75.75h1.5a.75.75 0 00.75-.75V3.75A.75.75 0 007.25 3h-1.5zM12.75 3a.75.75 0 00-.75.75v12.5c0 .414.336.75.75.75h1.5a.75.75 0 00.75-.75V3.75a.75.75 0 00-.75-.75h-1.5z"/>';
-    }
-  }
-}
-
-// Listen to video play/pause events
-document.addEventListener('DOMContentLoaded', function() {
-  const observer = new MutationObserver(function() {
-    if (currentVideo) {
-      currentVideo.addEventListener('play', updatePlayPauseButton);
-      currentVideo.addEventListener('pause', updatePlayPauseButton);
-    }
-  });
-});
+let liveStream = null;
+let liveVideo = null;
+let liveOcrInterval = null;
+let isProcessingFrame = false;
+let lastDetectedPlate = null;
+let lastDetectedAt = 0;
 
 // Snapshot button
 document.getElementById('snapshotBtn').addEventListener('click', function() {
-  if (currentVideo && !currentVideo.paused) {
+  if (liveVideo && liveVideo.readyState >= 2) {
     // Create canvas to capture frame
     const canvas = document.createElement('canvas');
-    canvas.width = currentVideo.videoWidth;
-    canvas.height = currentVideo.videoHeight;
+    canvas.width = liveVideo.videoWidth;
+    canvas.height = liveVideo.videoHeight;
     
     const ctx = canvas.getContext('2d');
-    ctx.drawImage(currentVideo, 0, 0, canvas.width, canvas.height);
+    ctx.drawImage(liveVideo, 0, 0, canvas.width, canvas.height);
     
     // Convert to blob and download
     canvas.toBlob(function(blob) {
@@ -497,37 +260,7 @@ document.getElementById('snapshotBtn').addEventListener('click', function() {
       showNotification('Snapshot berhasil disimpan!');
     }, 'image/jpeg', 0.95);
   } else {
-    alert('Video harus diputar untuk mengambil snapshot!');
-  }
-});
-
-// Clear video button
-document.getElementById('clearVideoBtn').addEventListener('click', function() {
-  if (confirm('Hapus video yang sedang dimuat?')) {
-    // Clear video
-    const cameraFeed = document.getElementById('cameraFeed');
-    cameraFeed.innerHTML = `
-      <div class="text-center">
-        <svg class="w-16 h-16 text-slate-600 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
-        </svg>
-        <p class="text-sm text-slate-500">Upload video untuk testing</p>
-        <p class="text-xs text-slate-600 mt-1">atau hubungkan kamera untuk live feed</p>
-      </div>
-    `;
-    
-    // Reset input
-    document.getElementById('videoInput').value = '';
-    currentVideo = null;
-    
-    // Hide controls
-    document.getElementById('playPauseBtn').classList.add('hidden');
-    document.getElementById('clearVideoBtn').classList.add('hidden');
-    
-    // Reset status
-    document.getElementById('cameraStatus').textContent = 'Standby';
-    document.getElementById('cameraStatus').classList.remove('text-green-600');
-    document.getElementById('cameraSource').textContent = '-';
+    alert('Kamera harus aktif untuk mengambil snapshot!');
   }
 });
 
@@ -570,36 +303,350 @@ function showNotification(message, type = 'success') {
   }, 4000);
 }
 
-// Webcam option (uncomment to enable)
-/*
-function startWebcam() {
-  navigator.mediaDevices.getUserMedia({ video: true })
-    .then(function(stream) {
-      const video = document.createElement('video');
-      video.srcObject = stream;
-      video.autoplay = true;
-      video.className = 'w-full h-full object-cover';
-      document.getElementById('cameraFeed').innerHTML = '';
-      document.getElementById('cameraFeed').appendChild(video);
-      currentVideo = video;
-      
-      document.getElementById('cameraStatus').textContent = 'Live';
-      document.getElementById('cameraStatus').classList.add('text-green-600');
-      document.getElementById('cameraSource').textContent = 'Webcam';
-    })
-    .catch(function(err) {
-      console.error('Error accessing camera:', err);
-      alert('Tidak dapat mengakses webcam!');
-    });
-}
-*/
+const startLiveOcrBtn = document.getElementById('startLiveOcrBtn');
+const stopLiveOcrBtn = document.getElementById('stopLiveOcrBtn');
+const liveOcrResult = document.getElementById('liveOcrResult');
+const liveOcrStorageKey = 'smartParkingLiveOcrEnabled';
 
-// Auto refresh log setiap 30 detik (disabled when video is playing)
-setInterval(function() {
-  if (!currentVideo || currentVideo.paused) {
-    location.reload();
+startLiveOcrBtn.addEventListener('click', function () {
+  startLiveOcr();
+});
+
+async function startLiveOcr(options = {}) {
+  if (liveStream) {
+    return;
   }
-}, 30000);
+
+  try {
+    liveStream = await navigator.mediaDevices.getUserMedia({
+      video: true,
+      audio: false
+    });
+
+    const cameraFeed = document.getElementById('cameraFeed');
+    cameraFeed.innerHTML = '';
+
+    liveVideo = document.createElement('video');
+    liveVideo.srcObject = liveStream;
+    liveVideo.autoplay = true;
+    liveVideo.playsInline = true;
+    liveVideo.muted = true;
+    liveVideo.className = 'w-full h-full object-cover';
+
+    cameraFeed.appendChild(liveVideo);
+
+    document.getElementById('cameraStatus').textContent = 'Live OCR Active';
+    document.getElementById('cameraStatus').classList.add('text-green-600');
+    document.getElementById('cameraSource').textContent = 'Webcam OCR';
+
+    startLiveOcrBtn.classList.add('hidden');
+    stopLiveOcrBtn.classList.remove('hidden');
+
+    liveOcrResult.classList.remove('hidden');
+    liveOcrResult.innerHTML = `
+      <p class="text-slate-600">Live OCR aktif. Kamera sedang membaca plat...</p>
+    `;
+
+    liveOcrInterval = setInterval(captureFrameForOcr, 2000);
+    localStorage.setItem(liveOcrStorageKey, 'true');
+
+  } catch (error) {
+    console.error(error);
+    if (options.silent !== true) {
+      alert('Tidak bisa mengakses webcam. Pastikan izin kamera diizinkan.');
+    }
+  }
+}
+
+stopLiveOcrBtn.addEventListener('click', function () {
+  stopLiveOcr();
+});
+
+function stopLiveOcr() {
+  localStorage.removeItem(liveOcrStorageKey);
+
+  if (liveOcrInterval) {
+    clearInterval(liveOcrInterval);
+    liveOcrInterval = null;
+  }
+
+  if (liveStream) {
+    liveStream.getTracks().forEach(track => track.stop());
+    liveStream = null;
+  }
+
+  liveVideo = null;
+  isProcessingFrame = false;
+
+  const cameraFeed = document.getElementById('cameraFeed');
+  cameraFeed.innerHTML = `
+    <div class="text-center">
+      <svg class="w-16 h-16 text-slate-600 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+      </svg>
+      <p class="text-sm text-slate-500">Hubungkan kamera untuk live feed</p>
+      <p class="text-xs text-slate-600 mt-1">Tekan Start Live OCR untuk mulai membaca plat</p>
+    </div>
+  `;
+
+  document.getElementById('cameraStatus').textContent = 'Standby';
+  document.getElementById('cameraStatus').classList.remove('text-green-600');
+  document.getElementById('cameraSource').textContent = '-';
+
+  startLiveOcrBtn.classList.remove('hidden');
+  stopLiveOcrBtn.classList.add('hidden');
+
+  liveOcrResult.classList.add('hidden');
+}
+
+if (localStorage.getItem(liveOcrStorageKey) === 'true') {
+  startLiveOcr({ silent: true });
+}
+
+async function captureFrameForOcr() {
+  if (!liveVideo || liveVideo.readyState < 2 || isProcessingFrame) {
+    return;
+  }
+
+  isProcessingFrame = true;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = liveVideo.videoWidth;
+  canvas.height = liveVideo.videoHeight;
+
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(liveVideo, 0, 0, canvas.width, canvas.height);
+
+  canvas.toBlob(async function (blob) {
+    if (!blob) {
+      isProcessingFrame = false;
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', blob, 'frame.jpg');
+
+    try {
+      const response = await fetch('http://127.0.0.1:8001/predict-frame', {
+        method: 'POST',
+        body: formData
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        const plate = result.final_plate;
+        const now = Date.now();
+
+        liveOcrResult.classList.remove('bg-slate-50', 'border-slate-200', 'bg-red-50', 'border-red-200');
+        liveOcrResult.classList.add('bg-green-50', 'border-green-200');
+
+        liveOcrResult.innerHTML = `
+          <div class="space-y-2">
+            <p class="font-semibold text-green-700">Plat Terdeteksi</p>
+            <div class="bg-white border border-green-200 rounded-lg p-3">
+              <p class="text-xs text-slate-500 mb-1">Nomor Plat</p>
+              <p class="text-xl font-bold text-slate-900">${plate}</p>
+            </div>
+          </div>
+        `;
+
+        document.getElementById('cameraStatus').textContent = 'Plate Detected';
+
+        if (plate !== lastDetectedPlate || now - lastDetectedAt > 10000) {
+          lastDetectedPlate = plate;
+          lastDetectedAt = now;
+
+          await sendDetectedPlateToLaravel(plate);
+        }
+
+      } else {
+        liveOcrResult.classList.remove('bg-green-50', 'border-green-200', 'bg-red-50', 'border-red-200');
+        liveOcrResult.classList.add('bg-slate-50', 'border-slate-200');
+
+        liveOcrResult.innerHTML = `
+          <p class="font-semibold text-slate-700">Scanning...</p>
+          <p class="text-sm text-slate-500">${result.message}</p>
+        `;
+
+        document.getElementById('cameraStatus').textContent = 'Scanning...';
+      }
+
+    } catch (error) {
+      console.error(error);
+
+      liveOcrResult.classList.remove('bg-slate-50', 'border-slate-200', 'bg-green-50', 'border-green-200');
+      liveOcrResult.classList.add('bg-red-50', 'border-red-200');
+
+      liveOcrResult.innerHTML = `
+        <p class="font-semibold text-red-700">Gagal menghubungi API Python</p>
+        <p class="text-sm text-red-600">Pastikan API Python berjalan di http://127.0.0.1:8001</p>
+      `;
+    } finally {
+      isProcessingFrame = false;
+    }
+
+  }, 'image/jpeg', 0.9);
+}
+
+function appendLiveOcrMessage(message, type = 'info') {
+  const messageElement = document.createElement('p');
+  const textColor = type === 'success'
+    ? 'text-green-700'
+    : type === 'warning'
+      ? 'text-yellow-700'
+      : 'text-red-700';
+
+  messageElement.className = `mt-2 text-sm font-medium ${textColor}`;
+  messageElement.textContent = message;
+  liveOcrResult.appendChild(messageElement);
+}
+
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
+
+function statusBadge(type) {
+  if (type === 'in') {
+    return `
+      <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd"/>
+        </svg>
+        Masuk
+      </span>
+    `;
+  }
+
+  return `
+    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">
+      <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd" transform="rotate(180 10 10)"/>
+      </svg>
+      Keluar
+    </span>
+  `;
+}
+
+function recentLogRow(log) {
+  const vehicleName = log.vehicle_name
+    ? `<div class="text-xs text-slate-500">${escapeHtml(log.vehicle_name)}</div>`
+    : '';
+
+  return `
+    <tr data-log-row="true" class="hover:bg-slate-50 transition-colors">
+      <td class="px-6 py-4 whitespace-nowrap">
+        <div class="text-sm text-slate-900">${escapeHtml(log.logged_time)}</div>
+        <div class="text-xs text-slate-500">${escapeHtml(log.logged_date)}</div>
+      </td>
+      <td class="px-6 py-4 whitespace-nowrap">
+        <div class="text-sm font-medium text-slate-900">${escapeHtml(log.plate_number)}</div>
+        ${vehicleName}
+      </td>
+      <td class="px-6 py-4 whitespace-nowrap">
+        <div class="text-sm text-slate-700">${escapeHtml(log.driver_name || '-')}</div>
+      </td>
+      <td class="px-6 py-4 whitespace-nowrap">
+        <div class="text-sm text-slate-700">${escapeHtml(log.vehicle_type || '-')}</div>
+      </td>
+      <td class="px-6 py-4 whitespace-nowrap">
+        ${statusBadge(log.type)}
+      </td>
+    </tr>
+  `;
+}
+
+function setCounterText(id, value) {
+  const element = document.getElementById(id);
+
+  if (element && value !== undefined && value !== null) {
+    element.textContent = value;
+  }
+}
+
+function refreshDashboardLog(result) {
+  if (!result.log) {
+    return;
+  }
+
+  const recentLogsBody = document.getElementById('recentLogsBody');
+  const emptyRow = document.getElementById('recentLogsEmpty');
+
+  if (emptyRow) {
+    emptyRow.remove();
+  }
+
+  recentLogsBody.insertAdjacentHTML('afterbegin', recentLogRow(result.log));
+
+  recentLogsBody.querySelectorAll('tr[data-log-row="true"]').forEach(function (row, index) {
+    if (index >= 10) {
+      row.remove();
+    }
+  });
+
+  if (result.stats) {
+    setCounterText('todayInCount', result.stats.today_in);
+    setCounterText('todayOutCount', result.stats.today_out);
+  }
+}
+
+async function sendDetectedPlateToLaravel(plate) {
+  console.log('Plat untuk proses lanjutan:', plate);
+
+  try {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+    if (!csrfToken) {
+      throw new Error('CSRF token tidak ditemukan. Refresh halaman lalu coba lagi.');
+    }
+
+    const response = await fetch('{{ route('vehicle-log.store-detection') }}', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-CSRF-TOKEN': csrfToken
+      },
+      body: JSON.stringify({
+        plate_number: plate
+      })
+    });
+
+    const result = await response.json().catch(() => ({
+      message: 'Response Laravel tidak bisa dibaca.'
+    }));
+
+    if (!response.ok || !result.success) {
+      const message = result.message || 'Log deteksi gagal disimpan.';
+      const type = response.status === 404 ? 'warning' : 'error';
+
+      appendLiveOcrMessage(message, type);
+      showNotification(message, type);
+      return false;
+    }
+
+    appendLiveOcrMessage(result.message, 'success');
+    showNotification(result.message, 'success');
+    document.getElementById('cameraStatus').textContent = 'Log Saved';
+    refreshDashboardLog(result);
+
+    return true;
+  } catch (error) {
+    const message = 'Gagal menyimpan log: ' + error.message;
+
+    console.error('Laravel log error:', error);
+    appendLiveOcrMessage(message, 'error');
+    showNotification(message, 'error');
+    return false;
+  }
+}
+
 </script>
 
 <style>
