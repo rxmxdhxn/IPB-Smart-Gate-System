@@ -448,11 +448,33 @@
 
             if (result.success) {
               const plate = result.final_plate;
-              matchBuffer.push(plate);
-              if (matchBuffer.length > REQUIRED_MATCHES) {
-                matchBuffer.shift();
+              const hasMismatch = matchBuffer.length > 0 && matchBuffer.some((p) => p !== plate);
+
+              if (hasMismatch) {
+                matchBuffer = [];
+
+                liveOcrResult.classList.remove(
+                  'bg-slate-50',
+                  'border-slate-200',
+                  'bg-green-50',
+                  'border-green-200',
+                  'bg-yellow-50',
+                  'border-yellow-200',
+                );
+                liveOcrResult.classList.add('bg-red-50', 'border-red-200');
+
+                liveOcrResult.innerHTML = `
+              <p class="font-semibold text-red-700">Verifikasi plat diulang</p>
+              <p class="text-sm text-red-600">Hasil pemindaian tidak sesuai dari ${REQUIRED_MATCHES} frame.</p>
+              <p class="text-sm text-slate-500">${plate}</p>
+            `;
+
+                document.getElementById('cameraStatus').textContent = 'Verification Reset';
+                return;
               }
-              const isConfirmed = matchBuffer.length === REQUIRED_MATCHES && matchBuffer.every((p) => p === plate);
+
+              matchBuffer.push(plate);
+              const isConfirmed = matchBuffer.length === REQUIRED_MATCHES;
 
               if (isConfirmed) {
                 const now = Date.now();
@@ -492,7 +514,7 @@
                 liveOcrResult.classList.add('bg-yellow-50', 'border-yellow-200');
 
                 liveOcrResult.innerHTML = `
-              <p class="font-semibold text-slate-700">Memverifikasi PLat...</p>
+              <p class="font-semibold text-slate-700">Memverifikasi Plat...</p>
               <p class="text-sm text-yellow-600">Menahan frame untuk akurasi. (${matchBuffer.length}/${REQUIRED_MATCHES})</p>
               <p class="text-sm text-slate-500">${plate}</p>
             `;
