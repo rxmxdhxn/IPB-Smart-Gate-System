@@ -27,6 +27,13 @@
 </div>
 @endif
 
+{{-- Error Message --}}
+@if(session('error'))
+<div class="mb-6 bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">
+  {{ session('error') }}
+</div>
+@endif
+
 {{-- Stats --}}
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5 mb-8">
   <div class="bg-white rounded-[14px] p-5 shadow-sm border border-slate-100">

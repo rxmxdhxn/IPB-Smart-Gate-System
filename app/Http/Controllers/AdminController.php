@@ -18,7 +18,8 @@ class AdminController extends Controller
         // Ambil log aktivitas terbaru dengan pagination (10 per halaman)
         $recentLogs = VehicleLog::with('vehicle.user')
             ->orderBy('logged_at', 'desc')
-            ->paginate(10);
+            ->take(10)
+            ->get();
         
         // Hitung total kendaraan masuk hari ini
         $todayIn = VehicleLog::where('type', 'in')
@@ -121,6 +122,13 @@ class AdminController extends Controller
     public function destroy($id)
     {
         $user = User::findOrFail($id);
+
+        // Cegah superadmin menghapus akunnya sendiri
+        if ($user->id === auth()->id()) {
+            return redirect()->route('user.index')
+                ->with('error', 'Anda tidak dapat menghapus akun Anda sendiri');
+        }
+
         $user->delete();
 
         return redirect()->route('user.index')

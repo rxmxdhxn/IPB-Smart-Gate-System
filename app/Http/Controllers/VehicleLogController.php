@@ -150,10 +150,11 @@ class VehicleLogController extends Controller
                 'type_label' => $log->type === 'in' ? 'Masuk' : 'Keluar',
                 'plate_number' => $log->plate_number,
                 'driver_name' => $log->driver_name ?? $log->vehicle?->user?->name ?? '-',
+                'driver_role' => $log->vehicle?->user?->role ?? null,
                 'vehicle_type' => $log->vehicle?->vehicle_type ?? '-',
                 'vehicle_name' => trim(($log->vehicle?->brand ?? '') . ' ' . ($log->vehicle?->type ?? '')),
-                'logged_time' => $loggedAt->format('H:i'),
-                'logged_date' => $loggedAt->format('d M Y'),
+                'logged_time' => $loggedAt->format('H:i:s'),
+                'logged_date' => $loggedAt->format('d/m/Y'),
             ],
             'stats' => [
                 'today_in' => VehicleLog::where('type', 'in')

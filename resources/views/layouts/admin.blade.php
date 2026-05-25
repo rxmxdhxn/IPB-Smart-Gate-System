@@ -17,11 +17,10 @@
   <div class="px-6 pt-7 pb-6 border-b border-white/[0.08]">
     <div class="flex items-center gap-2.5">
       <div class="w-9 h-9 bg-[#4a7fe5] rounded-[10px] flex items-center justify-center">
-        <svg class="w-[18px] h-[18px] fill-white" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <svg class="w-[18px] h-[18px] fill-none stroke-white stroke-[2]" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="12" y1="4" x2="12" y2="20"/><line x1="3" y1="12" x2="21" y2="12"/><path d="M7 8h2M15 8h2M7 16h2M15 16h2"/></svg>
       </div>
       <div>
-        <div class="text-[15px] font-bold text-white tracking-wide">AdminPanel</div>
-        <div class="text-[10px] text-white/40 tracking-wider uppercase mt-px">Fleet Manager</div>
+        <div class="text-[15px] font-bold text-white tracking-wide">Smart Gate</div>
       </div>
     </div>
   </div>
